@@ -1,0 +1,303 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Credora — Rewards</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:Arial,sans-serif;background:#f3f6fa;color:#172338}
+button,input{font:inherit}
+button{cursor:pointer;border:0}
+.app{max-width:480px;margin:auto;min-height:100vh;background:#f5f7fb;padding-bottom:85px}
+.top{background:#101d35;color:white;padding:23px 20px 26px}
+.brand{font-size:23px;font-weight:800;letter-spacing:1px}
+.brand span{color:#45d6a0}
+.toprow{display:flex;justify-content:space-between;align-items:center}
+.avatar{width:40px;height:40px;border-radius:50%;background:#263957;display:grid;place-items:center;font-weight:bold}
+.welcome{margin-top:25px;font-size:14px;color:#aebbd0}
+.welcome h2{color:white;font-size:23px;margin-top:6px}
+.balance{background:linear-gradient(135deg,#1a3457,#176b62);border-radius:18px;padding:20px;margin-top:22px}
+.balance small{color:#c2d9e4}
+.amount{font-size:32px;font-weight:bold;margin:10px 0}
+.balance-note{font-size:12px;color:#d4e8e8}
+.section{padding:20px}
+.section-title{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px}
+.section-title h3{font-size:17px}
+.card{background:white;border-radius:16px;padding:17px;margin-bottom:14px;box-shadow:0 4px 18px #142d4b08}
+.stats{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.stat{background:white;border-radius:15px;padding:16px}
+.stat small{color:#8491a5;font-size:12px}
+.stat strong{display:block;margin-top:8px;font-size:20px}
+.green{color:#149b6e}
+.btn{width:100%;padding:14px;border-radius:12px;background:#13a77a;color:white;font-weight:bold}
+.btn.dark{background:#14243e}
+.btn.light{background:#e8f7f1;color:#11875f}
+.btn.orange{background:#f1a738;color:#152238}
+.btn:active{opacity:.85}
+.refbox{background:#f4f7fa;padding:12px;border-radius:10px;font-size:12px;word-break:break-all;margin:12px 0}
+.row{display:flex;align-items:center;justify-content:space-between;gap:10px}
+.muted{font-size:12px;color:#7d899b;line-height:1.6}
+.progress{height:8px;background:#e9edf3;border-radius:10px;margin:12px 0;overflow:hidden}
+.progress div{height:100%;width:0;background:#16a77a;border-radius:10px}
+.item{display:flex;justify-content:space-between;padding:13px 0;border-bottom:1px solid #eef1f5;font-size:14px}
+.item:last-child{border:0}
+.nav{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:480px;background:white;border-top:1px solid #e9edf3;display:flex;justify-content:space-around;padding:12px 4px 17px;z-index:5}
+.nav button{background:none;color:#8a96a7;font-size:11px;display:flex;flex-direction:column;align-items:center;gap:5px}
+.nav button.active{color:#13a77a;font-weight:bold}
+.nav i{font-style:normal;font-size:20px}
+.page{display:none}
+.page.active{display:block}
+.notice{padding:12px;border-radius:12px;background:#fff6df;color:#88601c;font-size:12px;line-height:1.6;margin-bottom:14px}
+input{width:100%;padding:14px;border:1px solid #e2e8ef;border-radius:10px;margin:8px 0;background:white;outline:none}
+input:focus{border-color:#18a77a}
+label{font-size:12px;color:#69778a}
+select{width:100%;padding:13px;border:1px solid #e2e8ef;border-radius:10px;background:white;margin:8px 0}
+.header{padding:20px 20px 5px}
+.header h2{font-size:21px}
+.header p{font-size:13px;color:#8190a3;margin-top:6px}
+.small{font-size:11px;color:#8491a5}
+hr{border:0;border-top:1px solid #eef1f5;margin:14px 0}
+</style>
+</head>
+<body>
+<div class="app">
+
+<header class="top">
+  <div class="toprow">
+    <div class="brand">CRE<span>D</span>ORA</div>
+    <div class="avatar" id="avatar">C</div>
+  </div>
+  <div class="welcome">
+    Welcome to Credora,
+    <h2 id="userName">Member</h2>
+  </div>
+  <div class="balance">
+    <small>Welcome bonus · Conditional demo credit</small>
+    <div class="amount" id="balance">₦15,000</div>
+    <div class="balance-note">Demo reward balance · Not cash</div>
+  </div>
+</header>
+
+<!-- HOME -->
+<div class="page active" id="home">
+<section class="section">
+  <div class="stats">
+    <div class="stat">
+      <small>Referral rewards (demo)</small>
+      <strong class="green" id="refEarned">₦0</strong>
+    </div>
+    <div class="stat">
+      <small>Invited members</small>
+      <strong id="refCount">0</strong>
+    </div>
+  </div>
+
+  <div class="section-title" style="margin-top:24px">
+    <h3>Your rewards</h3>
+  </div>
+  <div class="card">
+    <div class="row">
+      <strong>Welcome bonus</strong>
+      <span class="green">₦15,000</span>
+    </div>
+    <p class="muted" style="margin-top:8px">Conditional promotional demo credit. It is not withdrawable cash.</p>
+    <hr>
+    <div class="row">
+      <strong>Referral reward</strong>
+      <span class="green">₦2,000</span>
+    </div>
+    <p class="muted" style="margin-top:8px">Per qualifying referral, subject to the published program terms.</p>
+  </div>
+
+  <div class="section-title">
+    <h3>Invite friends</h3>
+  </div>
+  <div class="card">
+    <p>Share your invitation and track eligible referrals.</p>
+    <div class="refbox" id="refLink">credora.example/ref/demo</div>
+    <button class="btn" onclick="copyReferral()">Copy referral link</button>
+    <button class="btn light" style="margin-top:10px" onclick="shareReferral()">Share invitation</button>
+  </div>
+
+  <div class="section-title">
+    <h3>Account status</h3>
+  </div>
+  <div class="card">
+    <div class="row">
+      <strong>Activation</strong>
+      <span id="activationStatus">Inactive</span>
+    </div>
+    <p class="muted" style="margin:10px 0">Activation fee shown: ₦3,500. Activation and reward eligibility rules will be published before payments are enabled.</p>
+    <button class="btn dark" onclick="go('activation')">View activation</button>
+  </div>
+
+  <div class="notice">
+    Credora demo: balances and referral counts shown here are sample data. No real funds are held or paid by this prototype.
+  </div>
+</section>
+</div>
+
+<!-- REFERRALS -->
+<div class="page" id="referrals">
+<div class="header">
+  <h2>Invite & Earn</h2>
+  <p>Grow your referral network</p>
+</div>
+<section class="section">
+  <div class="card">
+    <small>Reward per qualifying referral</small>
+    <h2 class="green" style="margin:10px 0">₦2,000</h2>
+    <p class="muted">Referral rewards are demo credits only in this prototype.</p>
+  </div>
+  <div class="card">
+    <h3>Your invitation link</h3>
+    <div class="refbox" id="refLink2">credora.example/ref/demo</div>
+    <button class="btn" onclick="copyReferral()">Copy link</button>
+    <button class="btn light" style="margin-top:10px" onclick="shareReferral()">Share link</button>
+  </div>
+  <div class="card">
+    <div class="item"><span>Total referrals</span><strong id="refCount2">0</strong></div>
+    <div class="item"><span>Referral rewards</span><strong id="refEarned2">₦0</strong></div>
+    <p class="muted">Referral tracking will be connected to the database in a later step. The prototype cannot verify signups.</p>
+  </div>
+</section>
+</div>
+
+<!-- WALLET -->
+<div class="page" id="wallet">
+<div class="header">
+  <h2>My Wallet</h2>
+  <p>Reward credit and account activity</p>
+</div>
+<section class="section">
+  <div class="card">
+    <small>Conditional bonus credit (demo)</small>
+    <h1 style="margin:12px 0">₦15,000</h1>
+    <span class="small">Not withdrawable cash</span>
+  </div>
+  <div class="notice">Withdrawals are not enabled. Only verified, properly funded rewards can be made withdrawable after the eligibility rules are established.</div>
+  <div class="card">
+    <h3>Transaction history</h3>
+    <div class="item"><span>Welcome bonus credit</span><strong>+₦15,000</strong></div>
+    <div class="item"><span>Referral rewards</span><strong>+₦0</strong></div>
+    <div class="item"><span>Withdrawals</span><strong>₦0</strong></div>
+  </div>
+  <button class="btn dark" onclick="go('withdraw')">Withdrawal eligibility</button>
+</section>
+</div>
+
+<!-- ACTIVATION -->
+<div class="page" id="activation">
+<div class="header">
+  <h2>Account activation</h2>
+  <p>Account requirements & status</p>
+</div>
+<section class="section">
+  <div class="card">
+    <small>Proposed activation fee</small>
+    <h1 style="margin:12px 0">₦3,500</h1>
+    <p class="muted">This is a proposed fee, not a payment request. The purpose, terms, and effect of activation must be clearly explained before any payment integration.</p>
+  </div>
+  <div class="notice">Demo mode: activation payments are disabled. This button does not collect money or unlock withdrawals.</div>
+  <div class="card">
+    <div class="item"><span>Account status</span><strong id="activationStatus2">Inactive</strong></div>
+    <div class="item"><span>Activation charge</span><strong>₦3,500</strong></div>
+  </div>
+  <button class="btn orange" onclick="alert('Demo only: payment is not enabled.')">Activate account (demo)</button>
+</section>
+</div>
+
+<!-- WITHDRAW -->
+<div class="page" id="withdraw">
+<div class="header">
+  <h2>Withdraw rewards</h2>
+  <p>Withdrawal eligibility and bank information</p>
+</div>
+<section class="section">
+  <div class="notice">Withdrawal is disabled in this prototype. Bonus credits are not cash and cannot be withdrawn. Eligibility requirements and real funding must be established before withdrawal functionality is activated.</div>
+  <div class="card">
+    <label>Bank name</label>
+    <input placeholder="Enter bank name" disabled>
+    <label>Account number</label>
+    <input placeholder="10-digit account number" disabled>
+    <label>Account name</label>
+    <input placeholder="Account name" disabled>
+    <button class="btn dark" onclick="alert('Withdrawals are not enabled in this demo.')">Request withdrawal (demo)</button>
+  </div>
+</section>
+</div>
+
+<!-- PROFILE -->
+<div class="page" id="profile">
+<div class="header">
+  <h2>My account</h2>
+  <p>Personal information and settings</p>
+</div>
+<section class="section">
+  <div class="card">
+    <div class="avatar" style="margin-bottom:15px" id="avatar2">C</div>
+    <label>Display name</label>
+    <input id="nameInput" placeholder="Enter your name">
+    <button class="btn" onclick="saveName()">Save profile</button>
+  </div>
+  <div class="card">
+    <div class="item"><span>Platform</span><strong>Credora</strong></div>
+    <div class="item"><span>Version</span><strong>Demo 1.0</strong></div>
+    <div class="item"><span>Account type</span><strong>Member</strong></div>
+  </div>
+</section>
+</div>
+
+<nav class="nav">
+  <button class="active" onclick="go('home',this)"><i>⌂</i>Home</button>
+  <button onclick="go('referrals',this)"><i>♧</i>Invite</button>
+  <button onclick="go('wallet',this)"><i>◈</i>Wallet</button>
+  <button onclick="go('withdraw',this)"><i>⇧</i>Withdraw</button>
+  <button onclick="go('profile',this)"><i>☻</i>Account</button>
+</nav>
+</div>
+
+<script>
+let memberName="Member";
+const referralURL="https://credora.example/ref/demo";
+
+function go(page,btn){
+  document.querySelectorAll(".page").forEach(p=>p.classList.remove("active"));
+  document.getElementById(page).classList.add("active");
+  document.querySelectorAll(".nav button").forEach(b=>b.classList.remove("active"));
+  if(btn) btn.classList.add("active");
+  else {
+    const navButtons=document.querySelectorAll(".nav button");
+    const pageMap=["home","referrals","wallet","withdraw","profile"];
+    navButtons[pageMap.indexOf(page)]?.classList.add("active");
+  }
+  window.scrollTo(0,0);
+}
+
+function copyReferral(){
+  navigator.clipboard.writeText(referralURL)
+  .then(()=>alert("Demo referral link copied!"))
+  .catch(()=>alert("Copy this link manually: "+referralURL));
+}
+
+function shareReferral(){
+  if(navigator.share){
+    navigator.share({title:"Credora Rewards",text:"Join Credora through my invitation link!",url:referralURL});
+  }else copyReferral();
+}
+
+function saveName(){
+  const value=document.getElementById("nameInput").value.trim();
+  if(!value)return alert("Enter a name first");
+  memberName=value;
+  document.getElementById("userName").textContent=value;
+  document.getElementById("avatar").textContent=value[0].toUpperCase();
+  document.getElementById("avatar2").textContent=value[0].toUpperCase();
+  alert("Profile updated in this demo.");
+}
+</script>
+</body>
+  </html>
+      
