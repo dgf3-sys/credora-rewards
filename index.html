@@ -263,9 +263,9 @@ hr{border:none;border-top:1px solid var(--line);margin:14px 0}
 </div>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
-const SUPABASE_URL = "PASTE_YOUR_PROJECT_URL_HERE";
-const SUPABASE_KEY = "PASTE_YOUR_PUBLISHABLE_KEY_HERE";
-
+const SUPABASE_URL = "https://wermyaznhxydcxsmluns.supabase.co";
+const SUPABASE_KEY = "sb_publishable_hBU-KCefUw-hSkf_6Xjw3g_BrOpZawH";
+const db = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 const referralCode = "CR-" + Math.random().toString(36).slice(2,8).toUpperCase();
 const inviteUrl = window.location.origin + window.location.pathname + "?ref=" + referralCode;
 
