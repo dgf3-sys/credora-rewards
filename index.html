@@ -1,386 +1,1511 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1.0">
-<title>Credora | Rewards</title>
-<meta name="theme-color" content="#101a2d">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Credora</title>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
 <style>
-:root{
- --bg:#f4f6fa;--navy:#101a2d;--navy2:#192842;--green:#12b886;
- --text:#18243a;--muted:#8490a3;--white:#fff;--line:#e9edf3;
+:root {
+  --bg: #08111f;
+  --panel: #111e30;
+  --panel2: #17263a;
+  --green: #27d69a;
+  --text: #f2f5fa;
+  --muted: #8d9bb0;
+  --border: #24354b;
+  --red: #ff626f;
 }
-*{box-sizing:border-box;margin:0;padding:0}
-body{font-family:Inter,Arial,sans-serif;background:var(--bg);color:var(--text)}
-button,input{font:inherit}
-button{cursor:pointer}
-.app{max-width:480px;min-height:100vh;margin:auto;background:var(--bg);padding-bottom:88px}
-header{background:var(--navy);color:white;padding:22px 20px 25px}
-.header-row{display:flex;justify-content:space-between;align-items:center}
-.logo{font-weight:900;font-size:23px;letter-spacing:1px}
-.logo span{color:#40d9a2}
-.user-icon{height:40px;width:40px;border-radius:50%;background:#253754;display:grid;place-items:center}
-.hello{margin-top:25px;color:#aab8cc;font-size:13px}
-.hello h2{color:#fff;font-size:23px;margin-top:5px}
-.wallet-card{margin-top:20px;padding:20px;border-radius:18px;background:linear-gradient(135deg,#1b385c,#147963)}
-.wallet-card .caption{color:#d1e4e6;font-size:12px}
-.wallet-amount{font-size:33px;font-weight:800;margin:10px 0}
-.wallet-card p{color:#d1e4e6;font-size:12px}
-main{padding:19px}
-.page{display:none}
-.page.active{display:block}
-.section-head{display:flex;align-items:center;justify-content:space-between;margin:8px 0 14px}
-.section-head h3{font-size:17px}
-.card{background:#fff;padding:17px;border-radius:16px;margin-bottom:14px;box-shadow:0 5px 20px rgba(20,38,66,.035)}
-.stats{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:22px}
-.stat{background:white;border-radius:15px;padding:16px}
-.stat small{color:var(--muted);font-size:12px}
-.stat strong{display:block;margin-top:8px;font-size:21px}
-.green{color:#0f9b6b}
-.muted{font-size:12px;color:var(--muted);line-height:1.65}
-.btn{width:100%;border:0;border-radius:12px;padding:14px;background:var(--green);color:white;font-weight:700}
-.btn.dark{background:var(--navy)}
-.btn.light{background:#e8f8f1;color:#14845f}
-.btn.outline{background:#fff;color:var(--navy);border:1px solid var(--line)}
-.btn+.btn{margin-top:10px}
-.ref-link{background:#f3f6f9;border-radius:10px;padding:12px;margin:12px 0;font-size:12px;overflow-wrap:anywhere}
-.notice{padding:13px;background:#fff6e3;color:#84621c;border-radius:12px;font-size:12px;line-height:1.6;margin-bottom:14px}
-.notice.green-notice{background:#e9f8f1;color:#147655}
-.row{display:flex;align-items:center;justify-content:space-between;gap:10px}
-.list-row{display:flex;justify-content:space-between;gap:10px;padding:14px 0;border-bottom:1px solid var(--line);font-size:14px}
-.list-row:last-child{border-bottom:0}
-.bottom-nav{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:480px;display:flex;justify-content:space-around;background:white;border-top:1px solid var(--line);padding:10px 3px 16px;z-index:10}
-.bottom-nav button{border:0;background:transparent;color:#8b97a8;font-size:10px;display:flex;flex-direction:column;align-items:center;gap:5px}
-.bottom-nav button.active{color:#13a77a;font-weight:700}
-.nav-icon{font-size:20px}
-.page-title{padding:6px 0 18px}
-.page-title h2{font-size:22px}
-.page-title p{font-size:13px;color:var(--muted);margin-top:5px}
-label{display:block;font-size:12px;color:#68768a;margin:12px 0 6px}
-input,select{width:100%;padding:13px;border:1px solid #e1e7ef;border-radius:10px;background:white;outline:none}
-input:focus,select:focus{border-color:var(--green)}
-input:disabled{background:#f5f6f8}
-.small{font-size:11px;color:var(--muted)}
-.form-message{font-size:13px;margin-top:12px;line-height:1.6}
-hr{border:none;border-top:1px solid var(--line);margin:14px 0}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: Arial, sans-serif;
+  min-height: 100vh;
+}
+
+button, input {
+  font: inherit;
+}
+
+button {
+  cursor: pointer;
+}
+
+.app {
+  max-width: 480px;
+  margin: auto;
+  min-height: 100vh;
+  padding-bottom: 90px;
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 22px 20px;
+}
+
+.logo {
+  font-size: 23px;
+  font-weight: 800;
+  letter-spacing: 1px;
+}
+
+.logo span {
+  color: var(--green);
+}
+
+.status {
+  background: #142b29;
+  color: var(--green);
+  padding: 8px 12px;
+  border-radius: 20px;
+  font-size: 12px;
+}
+
+.page {
+  display: none;
+  padding: 10px 18px 25px;
+}
+
+.page.active {
+  display: block;
+}
+
+.welcome {
+  color: var(--muted);
+  font-size: 14px;
+  margin: 10px 0 6px;
+}
+
+h1 {
+  font-size: 26px;
+  margin-bottom: 20px;
+}
+
+h2 {
+  font-size: 17px;
+  margin-bottom: 15px;
+}
+
+.card {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 18px;
+  padding: 20px;
+  margin-bottom: 16px;
+}
+
+.balance-card {
+  background: linear-gradient(135deg, #123c35, #142b3d);
+  border: 1px solid #28594c;
+  border-radius: 22px;
+  padding: 23px;
+  margin-bottom: 18px;
+}
+
+.balance-label {
+  color: #c1d6d0;
+  font-size: 13px;
+}
+
+.balance {
+  font-size: 32px;
+  font-weight: 800;
+  margin: 14px 0;
+}
+
+.balance-note {
+  font-size: 12px;
+  color: #b1c9c0;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.stat {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 17px;
+}
+
+.stat-label {
+  font-size: 12px;
+  color: var(--muted);
+  margin-bottom: 10px;
+}
+
+.stat-value {
+  font-size: 20px;
+  font-weight: bold;
+}
+
+.btn {
+  border: none;
+  background: var(--green);
+  color: #071a15;
+  padding: 14px;
+  width: 100%;
+  border-radius: 12px;
+  font-weight: bold;
+  margin-top: 10px;
+}
+
+.btn-secondary {
+  background: var(--panel2);
+  color: var(--text);
+  border: 1px solid var(--border);
+}
+
+.input {
+  width: 100%;
+  background: #0a1727;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 15px;
+  color: white;
+  margin: 8px 0 14px;
+  outline: none;
+}
+
+.input:focus {
+  border-color: var(--green);
+}
+
+.label {
+  font-size: 13px;
+  color: var(--muted);
+}
+
+.row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.item {
+  background: var(--panel2);
+  border-radius: 13px;
+  padding: 15px;
+  margin-top: 10px;
+}
+
+.muted {
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.6;
+}
+
+.green {
+  color: var(--green);
+}
+
+.bottom-nav {
+  position: fixed;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 100%;
+  max-width: 480px;
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  background: #0d1929;
+  border-top: 1px solid var(--border);
+  padding: 10px 5px calc(10px + env(safe-area-inset-bottom));
+  z-index: 50;
+}
+
+.nav-btn {
+  background: none;
+  border: none;
+  color: var(--muted);
+  font-size: 11px;
+  padding: 7px 2px;
+}
+
+.nav-btn.active {
+  color: var(--green);
+}
+
+.nav-icon {
+  font-size: 20px;
+  display: block;
+  margin-bottom: 5px;
+}
+
+.notice {
+  background: #182b38;
+  border: 1px solid #284454;
+  padding: 14px;
+  border-radius: 13px;
+  font-size: 13px;
+  line-height: 1.6;
+  margin-bottom: 15px;
+}
+
+hr {
+  border: none;
+  border-top: 1px solid var(--border);
+  margin: 15px 0;
+}
 </style>
 </head>
+
 <body>
+
 <div class="app">
 
-<header>
-  <div class="header-row">
-    <div class="logo">CRE<span>D</span>ORA</div>
-    <div class="user-icon" id="avatar">C</div>
-  </div>
-  <div class="hello">Welcome back,</div>
-  <h2 id="memberName">Member</h2>
-  <div class="wallet-card">
-    <div class="caption">Promotional bonus balance</div>
-    <div class="wallet-amount" id="bonusBalance">₦15,000</div>
-    <p>Conditional rewards credit</p>
-  </div>
+<header class="header">
+  <div class="logo">CREDO<span>RA</span></div>
+  <div class="status">● Member Portal</div>
 </header>
 
 <main>
-<!-- HOME -->
+
 <section class="page active" id="home">
-  <div class="stats">
-    <div class="stat">
-      <small>Referral rewards</small>
-      <strong class="green" id="refReward">₦0</strong>
+
+  <p class="welcome">Welcome back,</p>
+  <h1 id="dashboardName">Credora Member</h1>
+  <p class="muted">Your rewards dashboard</p>
+
+  <div class="card">
+    <p class="muted">Total eligible rewards</p>
+    <h1 id="dashboardBalance">₦0.00</h1>
+    <p class="muted">Available for eligible withdrawal</p>
+    <button class="btn" onclick="showPage('wallet')">
+      View wallet
+    </button>
+  </div>
+
+  <div class="grid">
+    <div class="card">
+      <p class="muted">Total referrals</p>
+      <h2 id="dashboardReferrals">0</h2>
     </div>
-    <div class="stat">
-      <small>Invited members</small>
-      <strong id="refCount">0</strong>
+
+    <div class="card">
+      <p class="muted">Qualified referrals</p>
+      <h2 id="dashboardQualified">0</h2>
     </div>
   </div>
 
-  <div class="section-head"><h3>My rewards</h3></div>
   <div class="card">
-    <div class="list-row"><span>Welcome reward</span><strong>₦15,000</strong></div>
-    <div class="list-row"><span>Referral reward</span><strong>₦2,000 / referral</strong></div>
-    <p class="muted">Rewards are subject to the published eligibility rules and verification.</p>
+    <p class="muted">Account status</p>
+    <h3 id="dashboardStatus">Checking...</h3>
   </div>
 
-  <div class="section-head"><h3>Invite friends</h3></div>
+  <h3>Quick actions</h3>
+
   <div class="card">
-    <p>Share your personal invitation link with friends.</p>
-    <div class="ref-link" id="refLink">Your invitation link will appear here</div>
-    <button class="btn" onclick="copyInvite()">Copy invitation link</button>
-    <button class="btn light" onclick="shareInvite()">Share invitation</button>
+    <button class="btn" onclick="showPage('referrals')">
+      Invite friends
+    </button>
+
+    <button class="btn btn-secondary"
+      onclick="showPage('withdraw')">
+      Request withdrawal
+    </button>
+
+    <button class="btn btn-secondary"
+      onclick="showPage('support')">
+      Contact customer support
+    </button>
+
+    <button class="btn btn-secondary"
+      onclick="showPage('auth')">
+      Sign in / Create account
+    </button>
   </div>
 
-  <div class="section-head"><h3>Account activation</h3></div>
-  <div class="card">
-    <div class="row">
-      <strong>Activation status</strong>
-      <strong id="activationStatus">Not activated</strong>
-    </div>
-    <hr>
-    <p class="muted">Account activation charge: ₦3,500. Full activation terms and benefits will be displayed before payment.</p>
-    <button class="btn dark" onclick="showPage('activation')">View activation details</button>
+  <h3>Recent activity</h3>
+
+  <div class="card" id="dashboardActivity">
+    <p class="muted">Your recent activity will appear here.</p>
   </div>
+
 </section>
 
-<!-- REFERRALS -->
 <section class="page" id="referrals">
-  <div class="page-title">
-    <h2>Invite & Earn</h2>
-    <p>Invite friends and follow your referral rewards.</p>
-  </div>
+
+  <p class="welcome">Grow with Credora</p>
+  <h1>Invite friends</h1>
+  <p class="muted">
+    Share your personal referral link with people you know.
+  </p>
+
   <div class="card">
-    <p class="muted">Reward per eligible referral</p>
-    <h1 class="green" style="margin:10px 0">₦2,000</h1>
-    <p class="muted">Rewards are credited after referral eligibility and verification.</p>
+    <p class="muted">Your referral code</p>
+    <h2 id="myReferralCode">Loading...</h2>
+
+    <button class="btn" onclick="copyReferral()">
+      Copy referral code
+    </button>
   </div>
+
   <div class="card">
-    <strong>Your invitation link</strong>
-    <div class="ref-link" id="refLink2">Invitation link</div>
-    <button class="btn" onclick="copyInvite()">Copy link</button>
-    <button class="btn light" onclick="shareInvite()">Share invitation</button>
+    <p class="muted">Your personal referral link</p>
+
+    <input
+      class="input"
+      id="myReferralLink"
+      readonly
+      value="Loading..."
+    >
+
+    <button class="btn" onclick="copyReferralLink()">
+      Copy referral link
+    </button>
+
+    <button class="btn btn-secondary"
+      onclick="shareReferral()">
+      Share invitation
+    </button>
   </div>
+
   <div class="card">
-    <div class="list-row"><span>Successful referrals</span><strong id="refCount2">0</strong></div>
-    <div class="list-row"><span>Referral reward balance</span><strong id="refReward2">₦0</strong></div>
-    <p class="muted">Your referral records will be available after your account is registered and connected.</p>
+    <p class="muted">Referral information</p>
+    <h2 id="referralTotal">0</h2>
+    <p class="muted">People invited</p>
   </div>
+
+  <div class="card">
+    <h3>How it works</h3>
+    <p>1. Share your personal referral link.</p>
+    <p>2. Your friend creates a Credora account.</p>
+    <p>3. Their referral is recorded.</p>
+    <p>4. Rewards are reviewed against the eligibility rules.</p>
+  </div>
+
 </section>
 
-<!-- WALLET -->
 <section class="page" id="wallet">
-  <div class="page-title">
-    <h2>Wallet</h2>
-    <p>Rewards and account balances</p>
-  </div>
+
+  <p class="welcome">Your finances</p>
+  <h1>Rewards wallet</h1>
+
   <div class="card">
-    <p class="muted">Conditional promotional bonus</p>
-    <h1 style="margin:10px 0">₦15,000</h1>
-    <p class="small">Bonus credit · subject to eligibility terms</p>
+    <p class="muted">Available rewards</p>
+    <h1 id="walletBalance">₦0.00</h1>
+    <p class="muted">Approved rewards eligible for withdrawal</p>
+    <button class="btn" onclick="showPage('withdraw')">
+      Withdraw rewards
+    </button>
   </div>
-  <div class="notice">Withdrawable funds will be shown separately from promotional bonus credits. Only eligible rewards backed by available funds can be withdrawn.</div>
-  <div class="card">
-    <h3>Transactions</h3>
-    <div class="list-row"><span>Welcome reward</span><strong>₦15,000</strong></div>
-    <div class="list-row"><span>Referral rewards</span><strong>₦0</strong></div>
-    <div class="list-row"><span>Withdrawals</span><strong>₦0</strong></div>
-    <p class="muted">Your actual transaction history will load after the database connection is completed.</p>
+
+  <div class="grid">
+    <div class="card">
+      <p class="muted">Pending</p>
+      <h2 id="walletPending">₦0</h2>
+    </div>
+
+    <div class="card">
+      <p class="muted">Paid</p>
+      <h2 id="walletPaid">₦0</h2>
+    </div>
   </div>
+
+  <h3>Reward history</h3>
+
+  <div class="card" id="walletTransactions">
+    <p class="muted">Your transactions will appear here.</p>
+  </div>
+
 </section>
 
-<!-- ACTIVATION -->
-<section class="page" id="activation">
-  <div class="page-title">
-    <h2>Account activation</h2>
-    <p>Activation information and account status</p>
-  </div>
-  <div class="card">
-    <p class="muted">Account activation charge</p>
-    <h1 style="margin:10px 0">₦3,500</h1>
-    <p class="muted">Activation benefits, requirements, and refund terms will be explained here before payment.</p>
-  </div>
-  <div class="card">
-    <div class="list-row"><span>Current status</span><strong id="activationStatus2">Not activated</strong></div>
-    <div class="list-row"><span>Activation amount</span><strong>₦3,500</strong></div>
-    <div class="notice">Payment processing will be connected after the payment provider and activation rules are configured.</div>
-    <button class="btn" onclick="activationInfo()">Continue to activation</button>
-  </div>
-</section>
 
-<!-- WITHDRAW -->
 <section class="page" id="withdraw">
-  <div class="page-title">
-    <h2>Withdraw</h2>
-    <p>Withdrawal request and bank details</p>
-  </div>
+
+  <p class="welcome">Rewards payout</p>
+  <h1>Withdraw</h1>
+
   <div class="card">
-    <div class="notice">Your withdrawable balance and eligibility will be verified before you submit a withdrawal request.</div>
-    <label>Bank</label>
-    <select id="bank">
-      <option value="">Select bank</option>
-      <option>Access Bank</option><option>GTBank</option><option>Zenith Bank</option>
-      <option>First Bank</option><option>UBA</option><option>OPay</option>
-      <option>Moniepoint</option><option>Kuda</option><option>Other</option>
-    </select>
-    <label>Account number</label>
-    <input id="accountNumber" inputmode="numeric" maxlength="10" placeholder="10-digit account number">
-    <label>Account name</label>
-    <input id="accountName" placeholder="Account holder's name">
-    <label>Withdrawal amount (₦)</label>
-    <input id="withdrawAmount" inputmode="numeric" placeholder="Enter amount">
-    <button class="btn dark" onclick="submitWithdrawal()">Submit withdrawal request</button>
-    <p class="form-message" id="withdrawMessage"></p>
+    <p class="muted">Eligible reward balance</p>
+    <h1 id="withdrawBalance">₦0.00</h1>
+    <p class="muted">
+      Withdrawal requests are reviewed before payment.
+    </p>
+  </div>
+
+  <div class="card">
+
+    <h3>Bank details</h3>
+
+    <label class="label">Withdrawal amount (₦)</label>
+    <input class="input" id="withdrawAmount"
+      type="number" min="1" placeholder="Enter amount">
+
+    <label class="label">Bank name</label>
+    <input class="input" id="withdrawBank"
+      placeholder="Your bank">
+
+    <label class="label">Account number</label>
+    <input class="input" id="withdrawAccount"
+      type="text" inputmode="numeric" maxlength="10"
+      placeholder="10-digit account number">
+
+    <label class="label">Account name</label>
+    <input class="input" id="withdrawName"
+      placeholder="Account holder name">
+
+    <button class="btn" onclick="submitWithdrawal()">
+      Submit withdrawal request
+    </button>
+
+    <p id="withdrawMessage" class="muted"
+      style="margin-top:12px;text-align:center"></p>
+
+  </div>
+
+  <h3>My withdrawal requests</h3>
+
+  <div class="card" id="withdrawHistory">
+    <p class="muted">Your requests will appear here.</p>
+  </div>
+
+</section>
+
+<section class="page" id="account">
+  <p class="welcome">Personal settings</p>
+  <h1>Account</h1>
+
+  <div class="card">
+    <h2>Member profile</h2>
+    <label class="label">Full name</label>
+    <input class="input" id="profileName" placeholder="Full name">
+
+    <label class="label">Email address</label>
+    <input class="input" id="profileEmail" placeholder="Email" type="email">
+
+    <button class="btn" onclick="saveProfile()">Save profile</button>
+  </div>
+
+  <div class="card">
+    <h2>Security</h2>
+    <p class="muted">Account security and sign-in settings will appear here.</p>
+    <button class="btn btn-secondary" onclick="logout()">Log out</button>
   </div>
 </section>
 
-<!-- PROFILE -->
-<section class="page" id="profile">
-  <div class="page-title">
-    <h2>My account</h2>
-    <p>Profile and personal information</p>
-  </div>
+<section class="page" id="support">
+  <p class="welcome">We're here to help</p>
+  <h1>Customer support</h1>
+
   <div class="card">
-    <label>Display name</label>
-    <input id="displayName" placeholder="Your name">
-    <button class="btn" onclick="saveProfile()">Save changes</button>
-    <p class="form-message" id="profileMessage"></p>
+    <h2>Contact support</h2>
+    <label class="label">Subject</label>
+    <input class="input" id="supportSubject" placeholder="What do you need help with?">
+
+    <label class="label">Your message</label>
+    <textarea class="input" id="supportMessage" rows="5" placeholder="Write your message"></textarea>
+
+    <button class="btn" onclick="sendSupport()">Send message</button>
   </div>
+
   <div class="card">
-    <div class="list-row"><span>Platform</span><strong>Credora</strong></div>
-    <div class="list-row"><span>Account</span><strong>Member</strong></div>
+    <h2>My conversations</h2>
+    <div class="muted" id="supportHistory">Your conversations will appear here.</div>
   </div>
 </section>
 
-<!-- AUTH -->
 <section class="page" id="auth">
-  <div class="page-title">
-    <h2>Join Credora</h2>
-    <p>Create an account or sign in</p>
-  </div>
+
+  <p class="welcome">Welcome to Credora</p>
+  <h1 id="authTitle">Create your account</h1>
+
   <div class="card">
-    <label>Full name</label>
-    <input id="signupName" placeholder="Enter your full name">
-    <label>Email address</label>
-    <input id="signupEmail" type="email" placeholder="Enter your email">
-    <label>Password</label>
-    <input id="signupPassword" type="password" placeholder="Create a password">
-    <button class="btn" onclick="registerMember()">Create account</button>
-    <p id="authMessage" class="form-message"></p>
+
+    <div id="signupFields">
+
+      <label class="label">Full name</label>
+      <input class="input" id="signupName"
+        placeholder="Enter your full name">
+
+    </div>
+
+    <label class="label">Email address</label>
+    <input class="input" id="signupEmail"
+      type="email" placeholder="Enter your email">
+
+    <label class="label">Password</label>
+    <input class="input" id="signupPassword"
+      type="password" placeholder="Minimum 8 characters">
+
+    <button class="btn" id="authSubmit" onclick="handleAuth()">
+      Create account
+    </button>
+
+    <p id="authMessage" class="muted"
+      style="margin-top:15px;text-align:center"></p>
+
     <hr>
-    <p class="muted">Account creation will be activated when Supabase authentication is connected.</p>
+
+    <button class="btn btn-secondary" id="authSwitch"
+      onclick="toggleAuthMode()">
+      Already have an account? Log in
+    </button>
+
+  </div>
+
+</section>
+
+<section class="page" id="admin">
+  <p class="welcome">Credora management</p>
+  <h1>Admin panel</h1>
+
+  <div class="grid">
+    <div class="card">
+      <p class="muted">Withdrawal requests</p>
+      <h2 id="adminWithdrawalCount">0</h2>
+    </div>
+    <div class="card">
+      <p class="muted">Support conversations</p>
+      <h2 id="adminSupportCount">0</h2>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>Withdrawal management</h2>
+    <p class="muted">Review member requests and record payment decisions.</p>
+    <div id="adminWithdrawals">
+      <p class="muted">Withdrawal requests will appear here.</p>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>Reward management</h2>
+    <p class="muted">Review and manage member rewards.</p>
+    <div id="adminRewards">
+      <p class="muted">Reward records will appear here.</p>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>Member management</h2>
+    <input
+      class="input"
+      id="adminUserSearch"
+      placeholder="Search members by name"
+    >
+    <div id="adminUsers">
+      <p class="muted">Member records will appear here.</p>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>Customer support inbox</h2>
+    <p class="muted">Read member messages and respond to support requests.</p>
+    <div id="adminSupport">
+      <p class="muted">Support conversations will appear here.</p>
+    </div>
   </div>
 </section>
+ 
 </main>
 
 <nav class="bottom-nav">
-  <button class="active" onclick="showPage('home',this)"><span class="nav-icon">⌂</span>Home</button>
-  <button onclick="showPage('referrals',this)"><span class="nav-icon">♧</span>Invite</button>
-  <button onclick="showPage('wallet',this)"><span class="nav-icon">◈</span>Wallet</button>
-  <button onclick="showPage('withdraw',this)"><span class="nav-icon">⇧</span>Withdraw</button>
-  <button onclick="showPage('profile',this)"><span class="nav-icon">☻</span>Account</button>
+  <button class="nav-btn active" onclick="showPage('home',this)">
+    <span class="nav-icon">⌂</span>Home
+  </button>
+  <button class="nav-btn" onclick="showPage('referrals',this)">
+    <span class="nav-icon">♧</span>Invite
+  </button>
+  <button class="nav-btn" onclick="showPage('wallet',this)">
+    <span class="nav-icon">▣</span>Wallet
+  </button>
+  <button class="nav-btn" onclick="showPage('withdraw',this)">
+    <span class="nav-icon">⇧</span>Withdraw
+  </button>
+  <button class="nav-btn" onclick="showPage('account',this)">
+    <span class="nav-icon">☻</span>Account
+  </button>
 </nav>
+
 </div>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
 <script>
-const SUPABASE_URL = "https://wermyaznhxydcxsmluns.supabase.co";
+ const SUPABASE_URL = "https://wermyaznhxydcxsmluns.supabase.co";
 const SUPABASE_KEY = "sb_publishable_hBU-KCefUw-hSkf_6Xjw3g_BrOpZawH";
-const db = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-const referralCode = "CR-" + Math.random().toString(36).slice(2,8).toUpperCase();
-const inviteUrl = window.location.origin + window.location.pathname + "?ref=" + referralCode;
 
-document.getElementById("refLink").textContent=inviteUrl;
-document.getElementById("refLink2").textContent=inviteUrl;
+const db = window.supabase.createClient(
+  SUPABASE_URL,
+  SUPABASE_KEY
+);
+ 
+async function loadDashboard() {
+  const { data: sessionData } = await db.auth.getSession();
+  const user = sessionData.session?.user;
 
-function showPage(id,btn){
- document.querySelectorAll(".page").forEach(p=>p.classList.remove("active"));
- const target=document.getElementById(id);
- if(target)target.classList.add("active");
- document.querySelectorAll(".bottom-nav button").forEach(b=>b.classList.remove("active"));
- if(btn)btn.classList.add("active");
- else{
-  const map=["home","referrals","wallet","withdraw","profile"];
-  const index=map.indexOf(id);
-  if(index>=0)document.querySelectorAll(".bottom-nav button")[index].classList.add("active");
- }
- window.scrollTo({top:0,behavior:"smooth"});
-}
+  if (!user) {
+    showPage("auth");
+    return;
+  }
 
-function copyInvite(){
- if(!navigator.clipboard){alert("Copy your invitation link manually.");return;}
- navigator.clipboard.writeText(inviteUrl)
- .then(()=>alert("Invitation link copied"))
- .catch(()=>alert("Please copy the link manually: "+inviteUrl));
-}
+  try {
+    const { data: profile, error: profileError } = await db
+      .from("profiles")
+      .select("full_name, activation_status")
+      .eq("id", user.id)
+      .single();
 
-function shareInvite(){
- if(navigator.share){
-  navigator.share({title:"Join Credora",text:"Join Credora through my invitation link.",url:inviteUrl})
-  .catch(()=>{});
- }else copyInvite();
-}
+    if (profileError) throw profileError;
 
-function activationInfo(){
- alert("Activation checkout is not yet connected. The complete activation terms will be shown before payment.");
-}
+    document.getElementById("dashboardName").textContent =
+      profile.full_name || "Credora Member";
 
-function submitWithdrawal(){
- const bank=document.getElementById("bank").value;
- const number=document.getElementById("accountNumber").value.trim();
- const name=document.getElementById("accountName").value.trim();
- const amount=document.getElementById("withdrawAmount").value.trim();
- const message=document.getElementById("withdrawMessage");
- if(!bank||!number||!name||!amount){
-  message.textContent="Please complete all fields.";
-  message.style.color="#c0392b";
-  return;
- }
- if(!/^\d{10}$/.test(number)){
-  message.textContent="Enter a valid 10-digit account number.";
-  message.style.color="#c0392b";
-  return;
- }
- if(Number(amount)<=0||!Number.isFinite(Number(amount))){
-  message.textContent="Enter a valid withdrawal amount.";
-  message.style.color="#c0392b";
-  return;
- }
- message.textContent="Your withdrawal form is ready. Request processing will be enabled after the secure database and wallet verification are connected.";
- message.style.color="#14845f";
-}
+    document.getElementById("dashboardStatus").textContent =
+      profile.activation_status || "Pending";
 
-function saveProfile(){
- const name=document.getElementById("displayName").value.trim();
- const message=document.getElementById("profileMessage");
- if(!name){message.textContent="Enter your name.";return;}
- message.textContent="Profile saving will be enabled after account authentication is connected.";
-}
+    const { data: rewards, error: rewardError } = await db
+      .from("reward_ledger")
+      .select("amount")
+      .eq("user_id", user.id)
+      .eq("status", "approved");
 
-async function registerMember(){
- const name=document.getElementById("signupName").value.trim();
- const email=document.getElementById("signupEmail").value.trim();
- const password=document.getElementById("signupPassword").value;
- const message=document.getElementById("authMessage");
- const referralInput=new URLSearchParams(window.location.search).get("ref");
+    if (rewardError) throw rewardError;
 
- if(!name||!email||!password){
-  message.textContent="Complete all fields to continue.";
-  message.style.color="#c0392b";
-  return;
+    const balance = (rewards || []).reduce(
+      (total, reward) => total + Number(reward.amount || 0),
+      0
+    );
+
+    document.getElementById("dashboardBalance").textContent =
+      "₦" + balance.toLocaleString("en-NG");
+
+    const { data: referrals, error: referralError } = await db
+      .from("referral_events")
+      .select("status")
+      .eq("referrer_id", user.id);
+
+    if (referralError) throw referralError;
+
+    document.getElementById("dashboardReferrals").textContent =
+      (referrals || []).length;
+
+    document.getElementById("dashboardQualified").textContent =
+      (referrals || []).filter(item => item.status === "qualified").length;
+
+  } catch (error) {
+    console.error("Dashboard error:", error);
+    document.getElementById("dashboardStatus").textContent =
+      "Unable to load account information";
+  }
  }
 
- if(password.length<8){
-  message.textContent="Password must be at least 8 characters.";
-  message.style.color="#c0392b";
-  return;
- }
+async function loadWallet() {
+  const { data: sessionData } = await db.auth.getSession();
+  const user = sessionData.session?.user;
 
- message.textContent="Creating your account...";
- message.style.color="#14845f";
+  if (!user) return;
 
- try{
-  const {data,error}=await db.auth.signUp({
-   email:email,
-   password:password,
-   options:{
-    data:{
-     full_name:name,
-     referral_code:referralInput
+  const container = document.getElementById("walletTransactions");
+
+  try {
+    const { data: rewards, error } = await db
+      .from("reward_ledger")
+      .select("amount, status, description, created_at")
+      .eq("user_id", user.id)
+      .order("created_at", { ascending: false });
+
+    if (error) throw error;
+
+    const items = rewards || [];
+
+    const approved = items
+      .filter(r => r.status === "approved")
+      .reduce((sum, r) => sum + Number(r.amount || 0), 0);
+
+    const pending = items
+      .filter(r => r.status === "pending")
+      .reduce((sum, r) => sum + Number(r.amount || 0), 0);
+
+    const paid = items
+      .filter(r => r.status === "paid")
+      .reduce((sum, r) => sum + Number(r.amount || 0), 0);
+
+    document.getElementById("walletBalance").textContent =
+      "₦" + approved.toLocaleString("en-NG");
+
+    document.getElementById("walletPending").textContent =
+      "₦" + pending.toLocaleString("en-NG");
+
+    document.getElementById("walletPaid").textContent =
+      "₦" + paid.toLocaleString("en-NG");
+
+    container.replaceChildren();
+
+    if (!items.length) {
+      const empty = document.createElement("p");
+      empty.className = "muted";
+      empty.textContent = "No reward transactions yet.";
+      container.appendChild(empty);
+      return;
     }
-   }
+
+    items.forEach(reward => {
+      const row = document.createElement("div");
+      row.style.padding = "12px 0";
+      row.style.borderBottom = "1px solid #263449";
+
+      const title = document.createElement("strong");
+      title.textContent = reward.description || reward.reward_type || "Reward";
+
+      const details = document.createElement("p");
+      details.className = "muted";
+      details.textContent =
+        (reward.status || "unknown") + " • " +
+        new Date(reward.created_at).toLocaleDateString();
+
+      const amount = document.createElement("p");
+      amount.textContent =
+        "₦" + Number(reward.amount || 0).toLocaleString("en-NG");
+
+      row.append(title, details, amount);
+      container.appendChild(row);
+    });
+
+  } catch (error) {
+    console.error("Wallet error:", error);
+    container.textContent = "Unable to load wallet transactions.";
+  }
+ }
+ 
+ async function loadWithdrawals() {
+  const { data: sessionData } = await db.auth.getSession();
+  const user = sessionData.session?.user;
+
+  if (!user) return;
+
+  const history = document.getElementById("withdrawHistory");
+
+  try {
+    const { data: requests, error } = await db
+      .from("withdrawal_requests")
+      .select("amount, status, bank_name, created_at")
+      .eq("user_id", user.id)
+      .order("created_at", { ascending: false });
+
+    if (error) throw error;
+
+    history.replaceChildren();
+
+    if (!requests || requests.length === 0) {
+      const empty = document.createElement("p");
+      empty.className = "muted";
+      empty.textContent = "No withdrawal requests yet.";
+      history.appendChild(empty);
+    } else {
+      requests.forEach(request => {
+        const row = document.createElement("div");
+        row.style.padding = "12px 0";
+        row.style.borderBottom = "1px solid #263449";
+
+        const amount = document.createElement("strong");
+        amount.textContent =
+          "₦" + Number(request.amount).toLocaleString("en-NG");
+
+        const bank = document.createElement("p");
+        bank.className = "muted";
+        bank.textContent = request.bank_name || "Bank not specified";
+
+        const status = document.createElement("p");
+        status.textContent = "Status: " + (request.status || "pending");
+
+        const date = document.createElement("p");
+        date.className = "muted";
+        date.textContent =
+          new Date(request.created_at).toLocaleDateString();
+
+        row.append(amount, bank, status, date);
+        history.appendChild(row);
+      });
+    }
+
+    const { data: rewards, error: rewardError } = await db
+      .from("reward_ledger")
+      .select("amount")
+      .eq("user_id", user.id)
+      .eq("status", "approved");
+
+    if (rewardError) throw rewardError;
+
+    const balance = (rewards || []).reduce(
+      (sum, reward) => sum + Number(reward.amount || 0),
+      0
+    );
+
+    document.getElementById("withdrawBalance").textContent =
+      "₦" + balance.toLocaleString("en-NG");
+
+  } catch (error) {
+    console.error("Withdrawal history error:", error);
+    history.textContent = "Unable to load withdrawal history.";
+  }
+ }
+  
+ // ===== CREDORA ADMIN LIVE DATA =====
+
+let adminMemberCache = [];
+
+function adminElement(tag, text, className) {
+  const el = document.createElement(tag);
+  if (text !== undefined) el.textContent = text;
+  if (className) el.className = className;
+  return el;
+}
+
+function adminButton(label, action, secondary = false) {
+  const btn = adminElement("button", label, "btn" + (secondary ? " btn-secondary" : ""));
+  btn.style.margin = "5px 5px 5px 0";
+  btn.onclick = action;
+  return btn;
+}
+
+function adminMoney(value) {
+  return "₦" + Number(value || 0).toLocaleString("en-NG");
+}
+
+async function loadAdmin() {
+  const container = document.getElementById("adminWithdrawals");
+  if (!container) return;
+
+  const { data: sessionData } = await db.auth.getSession();
+  const user = sessionData.session?.user;
+
+  if (!user) {
+    container.textContent = "Please log in first.";
+    return;
+  }
+
+  const { data: profile, error: roleError } = await db
+    .from("profiles")
+    .select("role")
+    .eq("id", user.id)
+    .single();
+
+  if (roleError || profile?.role !== "admin") {
+    container.textContent = "Admin access required.";
+    document.getElementById("adminRewards").textContent = "Access denied.";
+    document.getElementById("adminUsers").textContent = "Access denied.";
+    document.getElementById("adminSupport").textContent = "Access denied.";
+    return;
+  }
+
+  try {
+    const [withdrawalsResult, rewardsResult, profilesResult, supportResult] =
+      await Promise.all([
+        db.from("withdrawal_requests")
+          .select("id, user_id, amount, bank_name, account_number, account_name, status, created_at")
+          .order("created_at", { ascending: false }),
+
+        db.from("reward_ledger")
+          .select("id, user_id, reward_type, amount, status, description, created_at")
+          .order("created_at", { ascending: false }),
+
+        db.from("profiles")
+          .select("id, full_name, activation_status, role, created_at")
+          .order("created_at", { ascending: false }),
+
+        db.from("support_conversations")
+          .select("id, user_id, subject, status, created_at, updated_at")
+          .order("updated_at", { ascending: false })
+      ]);
+
+    if (withdrawalsResult.error) throw withdrawalsResult.error;
+    if (rewardsResult.error) throw rewardsResult.error;
+    if (profilesResult.error) throw profilesResult.error;
+    if (supportResult.error) throw supportResult.error;
+
+    const withdrawals = withdrawalsResult.data || [];
+    const rewards = rewardsResult.data || [];
+    adminMemberCache = profilesResult.data || [];
+    const conversations = supportResult.data || [];
+
+    document.getElementById("adminWithdrawalCount").textContent =
+      withdrawals.filter(w => w.status === "pending").length;
+
+    document.getElementById("adminSupportCount").textContent =
+      conversations.filter(c => c.status === "open").length;
+
+    renderAdminWithdrawals(withdrawals);
+    renderAdminRewards(rewards);
+    renderAdminMembers(adminMemberCache);
+    renderAdminSupport(conversations);
+
+  } catch (error) {
+    console.error("Admin loading error:", error);
+    container.textContent = "Error loading admin data: " + error.message;
+  }
+}
+
+// ===== WITHDRAWAL MANAGEMENT =====
+
+function renderAdminWithdrawals(items) {
+  const container = document.getElementById("adminWithdrawals");
+  container.replaceChildren();
+
+  if (!items.length) {
+    container.textContent = "No withdrawal requests.";
+    return;
+  }
+
+  items.forEach(request => {
+    const card = adminElement("div");
+    card.style.padding = "14px 0";
+    card.style.borderBottom = "1px solid #263449";
+
+    card.appendChild(adminElement("h3", adminMoney(request.amount)));
+    card.appendChild(adminElement("p", "Status: " + request.status, "muted"));
+    card.appendChild(adminElement("p", "Member ID: " + request.user_id));
+    card.appendChild(adminElement("p", "Bank: " + (request.bank_name || "")));
+    card.appendChild(adminElement("p", "Account: " + (request.account_number || "")));
+    card.appendChild(adminElement("p", "Account name: " + (request.account_name || "")));
+    card.appendChild(adminElement("p", "Date: " + new Date(request.created_at).toLocaleString()));
+
+    if (request.status === "pending") {
+      card.appendChild(adminButton("Mark paid", () => updateWithdrawalStatus(request.id, "paid")));
+      card.appendChild(adminButton("Reject", () => updateWithdrawalStatus(request.id, "rejected"), true));
+    } else {
+      card.appendChild(adminElement("p", "This request has been processed.", "muted"));
+    }
+
+    container.appendChild(card);
+  });
+}
+
+async function updateWithdrawalStatus(id, status) {
+  const action = status === "paid"
+    ? "Confirm that you have manually transferred this money and mark this request as PAID?"
+    : "Reject this withdrawal request?";
+
+  if (!confirm(action)) return;
+
+  const { error } = await db.rpc("admin_set_withdrawal_status", {
+    p_request_id: id,
+    p_new_status: status
   });
 
-  if(error) throw error;
+  if (error) {
+    alert(error.message);
+    return;
+  }
 
-  message.textContent="Registration successful! Check your email if verification is required.";
-  message.style.color="#14845f";
+  alert("Withdrawal status updated.");
+  loadAdmin();
+  loadWithdrawals();
+  loadWallet();
+  loadDashboard();
+}
 
- }catch(error){
-  message.textContent=error.message;
-  message.style.color="#c0392b";
- }
+// ===== REWARD MANAGEMENT =====
+
+function renderAdminRewards(items) {
+  const container = document.getElementById("adminRewards");
+  container.replaceChildren();
+
+  if (!items.length) {
+    container.textContent = "No reward records.";
+    return;
+  }
+
+  items.forEach(reward => {
+    const card = adminElement("div");
+    card.style.padding = "14px 0";
+    card.style.borderBottom = "1px solid #263449";
+
+    card.appendChild(adminElement("strong", adminMoney(reward.amount)));
+    card.appendChild(adminElement("p", reward.description || reward.reward_type || "Reward"));
+    card.appendChild(adminElement("p", "Member ID: " + reward.user_id));
+    card.appendChild(adminElement("p", "Status: " + reward.status, "muted"));
+
+    if (reward.status === "pending") {
+      card.appendChild(adminButton("Approve", () => updateRewardStatus(reward.id, "approved")));
+      card.appendChild(adminButton("Reject", () => updateRewardStatus(reward.id, "rejected"), true));
+    } else if (reward.status === "approved") {
+      card.appendChild(adminButton("Mark paid", () => updateRewardStatus(reward.id, "paid")));
+      card.appendChild(adminButton("Reject", () => updateRewardStatus(reward.id, "rejected"), true));
     }
-</script>
-</body>
-  </html>
+
+    container.appendChild(card);
+  });
+}
+
+async function updateRewardStatus(id, status) {
+  if (!confirm("Change this reward status to " + status + "?")) return;
+
+  const { error } = await db.rpc("admin_set_reward_status", {
+    p_reward_id: id,
+    p_new_status: status
+  });
+
+  if (error) {
+    alert(error.message);
+    return;
+  }
+
+  alert("Reward updated.");
+  loadAdmin();
+  loadDashboard();
+  loadWallet();
+}
+
+// ===== MEMBER SEARCH =====
+
+function renderAdminMembers(items) {
+  const container = document.getElementById("adminUsers");
+  container.replaceChildren();
+
+  const search = document.getElementById("adminUserSearch");
+  const term = (search?.value || "").trim().toLowerCase();
+
+  const filtered = items.filter(member =>
+    (member.full_name || "").toLowerCase().includes(term) ||
+    member.id.toLowerCase().includes(term)
+  );
+
+  if (!filtered.length) {
+    container.textContent = "No matching members.";
+    return;
+  }
+
+  filtered.forEach(member => {
+    const card = adminElement("div");
+    card.style.padding = "12px 0";
+    card.style.borderBottom = "1px solid #263449";
+
+    card.appendChild(adminElement("strong", member.full_name || "Unnamed member"));
+    card.appendChild(adminElement("p", "User ID: " + member.id));
+    card.appendChild(adminElement("p", "Account status: " + (member.activation_status || "Pending")));
+    card.appendChild(adminElement("p", "Role: " + (member.role || "member"), "muted"));
+
+    container.appendChild(card);
+  });
+
+  if (search && !search.dataset.bound) {
+    search.addEventListener("input", () => renderAdminMembers(adminMemberCache));
+    search.dataset.bound = "true";
+  }
+}
+
+// ===== CUSTOMER SUPPORT INBOX =====
+
+function renderAdminSupport(items) {
+  const container = document.getElementById("adminSupport");
+  container.replaceChildren();
+
+  if (!items.length) {
+    container.textContent = "No support conversations.";
+    return;
+  }
+
+  items.forEach(conversation => {
+    const card = adminElement("div");
+    card.style.padding = "12px 0";
+    card.style.borderBottom = "1px solid #263449";
+
+    card.appendChild(adminElement("strong", conversation.subject || "Customer support"));
+    card.appendChild(adminElement("p", "Member ID: " + conversation.user_id));
+    card.appendChild(adminElement("p", "Status: " + conversation.status, "muted"));
+
+    card.appendChild(adminButton("Open conversation", () => openAdminSupport(conversation.id)));
+
+    container.appendChild(card);
+  });
+}
+
+async function openAdminSupport(conversationId) {
+  const container = document.getElementById("adminSupport");
+  container.replaceChildren();
+
+  container.appendChild(adminButton("← Back to inbox", loadAdmin, true));
+
+  const thread = adminElement("div");
+  thread.textContent = "Loading messages...";
+  container.appendChild(thread);
+
+  const { data: sessionData } = await db.auth.getSession();
+  const adminUser = sessionData.session?.user;
+
+  const { data: messages, error } = await db
+    .from("support_messages")
+    .select("id, sender_id, message, created_at, read_at")
+    .eq("conversation_id", conversationId)
+    .order("created_at", { ascending: true });
+
+  if (error) {
+    thread.textContent = error.message;
+    return;
+  }
+
+  thread.replaceChildren();
+
+  (messages || []).forEach(msg => {
+    const bubble = adminElement("div");
+    bubble.style.padding = "12px";
+    bubble.style.margin = "8px 0";
+    bubble.style.borderRadius = "10px";
+    bubble.style.background = "#172235";
+
+    bubble.appendChild(adminElement(
+      "strong",
+      msg.sender_id === adminUser?.id ? "You (Admin)" : "Member"
+    ));
+
+    bubble.appendChild(adminElement("p", msg.message));
+    bubble.appendChild(adminElement("p", new Date(msg.created_at).toLocaleString(), "muted"));
+    thread.appendChild(bubble);
+  });
+
+  const reply = document.createElement("textarea");
+  reply.className = "input";
+  reply.placeholder = "Type your reply...";
+  reply.style.minHeight = "100px";
+  reply.style.marginTop = "12px";
+  container.appendChild(reply);
+
+  container.appendChild(adminButton("Send reply", () =>
+    sendAdminSupportReply(conversationId, reply.value)
+  ));
+
+  await db.from("support_messages")
+    .update({ read_at: new Date().toISOString() })
+    .eq("conversation_id", conversationId)
+    .neq("sender_id", adminUser?.id)
+    .is("read_at", null);
+}
+
+async function sendAdminSupportReply(conversationId, message) {
+  const text = message.trim();
+  if (!text) {
+    alert("Type a message first.");
+    return;
+  }
+
+  const { data: sessionData } = await db.auth.getSession();
+  const adminUser = sessionData.session?.user;
+  if (!adminUser) return;
+
+  const { error } = await db.from("support_messages").insert({
+    conversation_id: conversationId,
+    sender_id: adminUser.id,
+    message: text
+  });
+
+  if (error) {
+    alert(error.message);
+    return;
+  }
+
+  await db.from("support_conversations")
+    .update({ updated_at: new Date().toISOString() })
+    .eq("id", conversationId);
+
+  openAdminSupport(conversationId);
+}
   
+async function addAdminShortcut() {
+  const { data } = await db.auth.getSession();
+  const user = data.session?.user;
+  if (!user) return;
+
+  const { data: profile } = await db
+    .from("profiles")
+    .select("role")
+    .eq("id", user.id)
+    .single();
+
+  if (profile?.role !== "admin") return;
+
+  const authButton = document.querySelector(
+    '#home button[onclick*="showPage(\'auth\')"]'
+  );
+
+  if (!authButton) return;
+
+  const card = authButton.parentElement;
+
+  if (document.getElementById("adminShortcut")) return;
+
+  const btn = document.createElement("button");
+  btn.id = "adminShortcut";
+  btn.className = "btn";
+  btn.textContent = "Admin Panel";
+  btn.onclick = () => showPage("admin");
+
+  card.appendChild(btn);
+  }
+  
+function showPage(pageId, button) {
+  document.querySelectorAll(".page").forEach(page => {
+    page.classList.remove("active");
+  });
+
+  const page = document.getElementById(pageId);
+  if (page) page.classList.add("active");
+
+  document.querySelectorAll(".nav-btn").forEach(btn => {
+    btn.classList.remove("active");
+  });
+
+  if (button) button.classList.add("active");
+
+  if (pageId === "home") {
+    loadDashboard();
+    addAdminShortcut();
+  }
+
+  if (pageId === "referrals") loadReferral();
+  if (pageId === "wallet") loadWallet();
+  if (pageId === "withdraw") loadWithdrawals();
+  if (pageId === "admin") loadAdmin();
+}
+
+async function loadReferral() {
+  const { data: sessionData } = await db.auth.getSession();
+  const user = sessionData.session?.user;
+
+  if (!user) return;
+
+  const { data: profile, error } = await db
+    .from("profiles")
+    .select("referral_code")
+    .eq("id", user.id)
+    .single();
+
+  if (error) {
+    console.error("Referral loading error:", error);
+    return;
+  }
+
+  const code = profile.referral_code || "";
+
+  const { data: referrals, error: referralError } = await db
+  .from("referral_events")
+  .select("id")
+  .eq("referrer_id", user.id);
+
+if (referralError) throw referralError;
+
+document.getElementById("referralTotal").textContent =
+  (referrals || []).length;
+ 
+  const link = code
+    ? window.location.origin + window.location.pathname +
+      "?ref=" + encodeURIComponent(code)
+    : "";
+
+  document.getElementById("myReferralLink").value =
+    link || "Referral link unavailable";
+
+  document.getElementById("referralTotal").textContent = "0";
+}
+
+async function copyReferral() {
+  const code = document.getElementById("myReferralCode").textContent;
+
+  if (!code || code === "Not available" || code === "Loading...") {
+    alert("Your referral code is not available yet.");
+    return;
+  }
+
+  await navigator.clipboard.writeText(code);
+  alert("Referral code copied.");
+}
+
+async function shareReferral() {
+  const link = document.getElementById("myReferralLink").value;
+
+  if (!link || link === "Referral link unavailable") {
+    alert("Your referral link is not available yet.");
+    return;
+  }
+
+  if (navigator.share) {
+    await navigator.share({
+      title: "Join Credora",
+      text: "Join me on Credora using my referral link:",
+      url: link
+    });
+  } else {
+    await copyReferralLink();
+  }
+ }
+
+async function submitWithdrawal() {
+  const amount = Number(document.getElementById("withdrawAmount").value);
+  const bank = document.getElementById("withdrawBank").value.trim();
+  const account = document.getElementById("withdrawAccount").value.trim();
+  const name = document.getElementById("withdrawName").value.trim();
+  const message = document.getElementById("withdrawMessage");
+  const button = document.querySelector(
+    '#withdraw button[onclick="submitWithdrawal()"]'
+  );
+
+  if (!amount || amount <= 0) {
+    message.textContent = "Enter a valid withdrawal amount.";
+    return;
+  }
+
+  if (!bank || !account || !name) {
+    message.textContent = "Complete all bank details.";
+    return;
+  }
+
+  if (!/^[0-9]{10}$/.test(account)) {
+    message.textContent = "Account number must be 10 digits.";
+    return;
+  }
+
+  button.disabled = true;
+  message.textContent = "Submitting your request...";
+
+  try {
+    const { data, error } = await db.rpc("request_withdrawal", {
+      p_amount: Math.round(amount),
+      p_bank_name: bank,
+      p_account_number: account,
+      p_account_name: name
+    });
+
+    if (error) throw error;
+
+    message.textContent =
+      "Withdrawal request submitted successfully. Awaiting review.";
+
+    document.getElementById("withdrawAmount").value = "";
+
+    await loadWithdrawals();
+    await loadWallet();
+    await loadDashboard();
+
+  } catch (error) {
+    message.textContent = error.message || "Unable to submit request.";
+  } finally {
+    button.disabled = false;
+  }
+}
+
+function saveProfile() {
+  alert("Profile saving will be connected in the account stage.");
+}
+
+function sendSupport() {
+  alert("Customer support messaging will be connected in the support stage.");
+}
+
+let authMode = "signup";
+
+function toggleAuthMode() {
+  authMode = authMode === "signup" ? "login" : "signup";
+
+  document.getElementById("signupFields").style.display =
+    authMode === "signup" ? "block" : "none";
+
+  document.getElementById("authTitle").textContent =
+    authMode === "signup" ? "Create your account" : "Welcome back";
+
+  document.getElementById("authSubmit").textContent =
+    authMode === "signup" ? "Create account" : "Log in";
+
+  document.getElementById("authSwitch").textContent =
+    authMode === "signup"
+      ? "Already have an account? Log in"
+      : "New here? Create an account";
+
+  document.getElementById("authMessage").textContent = "";
+}
+
+async function handleAuth() {
+  const name = document.getElementById("signupName").value.trim();
+  const email = document.getElementById("signupEmail").value.trim();
+  const password = document.getElementById("signupPassword").value;
+  const message = document.getElementById("authMessage");
+  const submit = document.getElementById("authSubmit");
+
+  if (!email || !password) {
+    message.textContent = "Enter your email and password.";
+    return;
+  }
+
+  if (authMode === "signup" && !name) {
+    message.textContent = "Enter your full name.";
+    return;
+  }
+
+  if (password.length < 8) {
+    message.textContent = "Password must be at least 8 characters.";
+    return;
+  }
+
+  submit.disabled = true;
+  message.textContent = "Please wait...";
+
+  try {
+    let result;
+
+    if (authMode === "signup") {
+      result = await db.auth.signUp({
+        email: email,
+        password: password,
+        options: {
+  data: {
+    full_name: name,
+    referral_code: new URLSearchParams(
+      window.location.search
+    ).get("ref") || ""
+  }
+        }
+      });
+    } else {
+      result = await db.auth.signInWithPassword({
+        email: email,
+        password: password
+      });
+    }
+
+    if (result.error) throw result.error;
+
+    if (authMode === "signup" && !result.data.session) {
+      message.textContent =
+        "Account created. Check your email to confirm your account.";
+      return;
+    }
+
+    message.textContent = "Successful!";
+
+    showPage("home");
+
+  } catch (error) {
+    message.textContent = error.message;
+  } finally {
+    submit.disabled = false;
+  }
+}
+
+async function logout() {
+  const { error } = await db.auth.signOut();
+
+  if (error) {
+    alert(error.message);
+    return;
+  }
+
+  showPage("auth");
+ }
+</script>
+
+</body>
+   </html>
