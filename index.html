@@ -855,14 +855,405 @@ async function loadWallet() {
     history.textContent = "Unable to load withdrawal history.";
   }
  }
- 
+  
+ // ===== CREDORA ADMIN LIVE DATA =====
+
+let adminMemberCache = [];
+
+function adminElement(tag, text, className) {
+  const el = document.createElement(tag);
+  if (text !== undefined) el.textContent = text;
+  if (className) el.className = className;
+  return el;
+}
+
+function adminButton(label, action, secondary = false) {
+  const btn = adminElement("button", label, "btn" + (secondary ? " btn-secondary" : ""));
+  btn.style.margin = "5px 5px 5px 0";
+  btn.onclick = action;
+  return btn;
+}
+
+function adminMoney(value) {
+  return "₦" + Number(value || 0).toLocaleString("en-NG");
+}
+
+async function loadAdmin() {
+  const container = document.getElementById("adminWithdrawals");
+  if (!container) return;
+
+  const { data: sessionData } = await db.auth.getSession();
+  const user = sessionData.session?.user;
+
+  if (!user) {
+    container.textContent = "Please log in first.";
+    return;
+  }
+
+  const { data: profile, error: roleError } = await db
+    .from("profiles")
+    .select("role")
+    .eq("id", user.id)
+    .single();
+
+  if (roleError || profile?.role !== "admin") {
+    container.textContent = "Admin access required.";
+    document.getElementById("adminRewards").textContent = "Access denied.";
+    document.getElementById("adminUsers").textContent = "Access denied.";
+    document.getElementById("adminSupport").textContent = "Access denied.";
+    return;
+  }
+
+  try {
+    const [withdrawalsResult, rewardsResult, profilesResult, supportResult] =
+      await Promise.all([
+        db.from("withdrawal_requests")
+          .select("id, user_id, amount, bank_name, account_number, account_name, status, created_at")
+          .order("created_at", { ascending: false }),
+
+        db.from("reward_ledger")
+          .select("id, user_id, reward_type, amount, status, description, created_at")
+          .order("created_at", { ascending: false }),
+
+        db.from("profiles")
+          .select("id, full_name, activation_status, role, created_at")
+          .order("created_at", { ascending: false }),
+
+        db.from("support_conversations")
+          .select("id, user_id, subject, status, created_at, updated_at")
+          .order("updated_at", { ascending: false })
+      ]);
+
+    if (withdrawalsResult.error) throw withdrawalsResult.error;
+    if (rewardsResult.error) throw rewardsResult.error;
+    if (profilesResult.error) throw profilesResult.error;
+    if (supportResult.error) throw supportResult.error;
+
+    const withdrawals = withdrawalsResult.data || [];
+    const rewards = rewardsResult.data || [];
+    adminMemberCache = profilesResult.data || [];
+    const conversations = supportResult.data || [];
+
+    document.getElementById("adminWithdrawalCount").textContent =
+      withdrawals.filter(w => w.status === "pending").length;
+
+    document.getElementById("adminSupportCount").textContent =
+      conversations.filter(c => c.status === "open").length;
+
+    renderAdminWithdrawals(withdrawals);
+    renderAdminRewards(rewards);
+    renderAdminMembers(adminMemberCache);
+    renderAdminSupport(conversations);
+
+  } catch (error) {
+    console.error("Admin loading error:", error);
+    container.textContent = "Error loading admin data: " + error.message;
+  }
+}
+
+// ===== WITHDRAWAL MANAGEMENT =====
+
+function renderAdminWithdrawals(items) {
+  const container = document.getElementById("adminWithdrawals");
+  container.replaceChildren();
+
+  if (!items.length) {
+    container.textContent = "No withdrawal requests.";
+    return;
+  }
+
+  items.forEach(request => {
+    const card = adminElement("div");
+    card.style.padding = "14px 0";
+    card.style.borderBottom = "1px solid #263449";
+
+    card.appendChild(adminElement("h3", adminMoney(request.amount)));
+    card.appendChild(adminElement("p", "Status: " + request.status, "muted"));
+    card.appendChild(adminElement("p", "Member ID: " + request.user_id));
+    card.appendChild(adminElement("p", "Bank: " + (request.bank_name || "")));
+    card.appendChild(adminElement("p", "Account: " + (request.account_number || "")));
+    card.appendChild(adminElement("p", "Account name: " + (request.account_name || "")));
+    card.appendChild(adminElement("p", "Date: " + new Date(request.created_at).toLocaleString()));
+
+    if (request.status === "pending") {
+      card.appendChild(adminButton("Mark paid", () => updateWithdrawalStatus(request.id, "paid")));
+      card.appendChild(adminButton("Reject", () => updateWithdrawalStatus(request.id, "rejected"), true));
+    } else {
+      card.appendChild(adminElement("p", "This request has been processed.", "muted"));
+    }
+
+    container.appendChild(card);
+  });
+}
+
+async function updateWithdrawalStatus(id, status) {
+  const action = status === "paid"
+    ? "Confirm that you have manually transferred this money and mark this request as PAID?"
+    : "Reject this withdrawal request?";
+
+  if (!confirm(action)) return;
+
+  const { error } = await db.rpc("admin_set_withdrawal_status", {
+    p_request_id: id,
+    p_new_status: status
+  });
+
+  if (error) {
+    alert(error.message);
+    return;
+  }
+
+  alert("Withdrawal status updated.");
+  loadAdmin();
+  loadWithdrawals();
+  loadWallet();
+  loadDashboard();
+}
+
+// ===== REWARD MANAGEMENT =====
+
+function renderAdminRewards(items) {
+  const container = document.getElementById("adminRewards");
+  container.replaceChildren();
+
+  if (!items.length) {
+    container.textContent = "No reward records.";
+    return;
+  }
+
+  items.forEach(reward => {
+    const card = adminElement("div");
+    card.style.padding = "14px 0";
+    card.style.borderBottom = "1px solid #263449";
+
+    card.appendChild(adminElement("strong", adminMoney(reward.amount)));
+    card.appendChild(adminElement("p", reward.description || reward.reward_type || "Reward"));
+    card.appendChild(adminElement("p", "Member ID: " + reward.user_id));
+    card.appendChild(adminElement("p", "Status: " + reward.status, "muted"));
+
+    if (reward.status === "pending") {
+      card.appendChild(adminButton("Approve", () => updateRewardStatus(reward.id, "approved")));
+      card.appendChild(adminButton("Reject", () => updateRewardStatus(reward.id, "rejected"), true));
+    } else if (reward.status === "approved") {
+      card.appendChild(adminButton("Mark paid", () => updateRewardStatus(reward.id, "paid")));
+      card.appendChild(adminButton("Reject", () => updateRewardStatus(reward.id, "rejected"), true));
+    }
+
+    container.appendChild(card);
+  });
+}
+
+async function updateRewardStatus(id, status) {
+  if (!confirm("Change this reward status to " + status + "?")) return;
+
+  const { error } = await db.rpc("admin_set_reward_status", {
+    p_reward_id: id,
+    p_new_status: status
+  });
+
+  if (error) {
+    alert(error.message);
+    return;
+  }
+
+  alert("Reward updated.");
+  loadAdmin();
+  loadDashboard();
+  loadWallet();
+}
+
+// ===== MEMBER SEARCH =====
+
+function renderAdminMembers(items) {
+  const container = document.getElementById("adminUsers");
+  container.replaceChildren();
+
+  const search = document.getElementById("adminUserSearch");
+  const term = (search?.value || "").trim().toLowerCase();
+
+  const filtered = items.filter(member =>
+    (member.full_name || "").toLowerCase().includes(term) ||
+    member.id.toLowerCase().includes(term)
+  );
+
+  if (!filtered.length) {
+    container.textContent = "No matching members.";
+    return;
+  }
+
+  filtered.forEach(member => {
+    const card = adminElement("div");
+    card.style.padding = "12px 0";
+    card.style.borderBottom = "1px solid #263449";
+
+    card.appendChild(adminElement("strong", member.full_name || "Unnamed member"));
+    card.appendChild(adminElement("p", "User ID: " + member.id));
+    card.appendChild(adminElement("p", "Account status: " + (member.activation_status || "Pending")));
+    card.appendChild(adminElement("p", "Role: " + (member.role || "member"), "muted"));
+
+    container.appendChild(card);
+  });
+
+  if (search && !search.dataset.bound) {
+    search.addEventListener("input", () => renderAdminMembers(adminMemberCache));
+    search.dataset.bound = "true";
+  }
+}
+
+// ===== CUSTOMER SUPPORT INBOX =====
+
+function renderAdminSupport(items) {
+  const container = document.getElementById("adminSupport");
+  container.replaceChildren();
+
+  if (!items.length) {
+    container.textContent = "No support conversations.";
+    return;
+  }
+
+  items.forEach(conversation => {
+    const card = adminElement("div");
+    card.style.padding = "12px 0";
+    card.style.borderBottom = "1px solid #263449";
+
+    card.appendChild(adminElement("strong", conversation.subject || "Customer support"));
+    card.appendChild(adminElement("p", "Member ID: " + conversation.user_id));
+    card.appendChild(adminElement("p", "Status: " + conversation.status, "muted"));
+
+    card.appendChild(adminButton("Open conversation", () => openAdminSupport(conversation.id)));
+
+    container.appendChild(card);
+  });
+}
+
+async function openAdminSupport(conversationId) {
+  const container = document.getElementById("adminSupport");
+  container.replaceChildren();
+
+  container.appendChild(adminButton("← Back to inbox", loadAdmin, true));
+
+  const thread = adminElement("div");
+  thread.textContent = "Loading messages...";
+  container.appendChild(thread);
+
+  const { data: sessionData } = await db.auth.getSession();
+  const adminUser = sessionData.session?.user;
+
+  const { data: messages, error } = await db
+    .from("support_messages")
+    .select("id, sender_id, message, created_at, read_at")
+    .eq("conversation_id", conversationId)
+    .order("created_at", { ascending: true });
+
+  if (error) {
+    thread.textContent = error.message;
+    return;
+  }
+
+  thread.replaceChildren();
+
+  (messages || []).forEach(msg => {
+    const bubble = adminElement("div");
+    bubble.style.padding = "12px";
+    bubble.style.margin = "8px 0";
+    bubble.style.borderRadius = "10px";
+    bubble.style.background = "#172235";
+
+    bubble.appendChild(adminElement(
+      "strong",
+      msg.sender_id === adminUser?.id ? "You (Admin)" : "Member"
+    ));
+
+    bubble.appendChild(adminElement("p", msg.message));
+    bubble.appendChild(adminElement("p", new Date(msg.created_at).toLocaleString(), "muted"));
+    thread.appendChild(bubble);
+  });
+
+  const reply = document.createElement("textarea");
+  reply.className = "input";
+  reply.placeholder = "Type your reply...";
+  reply.style.minHeight = "100px";
+  reply.style.marginTop = "12px";
+  container.appendChild(reply);
+
+  container.appendChild(adminButton("Send reply", () =>
+    sendAdminSupportReply(conversationId, reply.value)
+  ));
+
+  await db.from("support_messages")
+    .update({ read_at: new Date().toISOString() })
+    .eq("conversation_id", conversationId)
+    .neq("sender_id", adminUser?.id)
+    .is("read_at", null);
+}
+
+async function sendAdminSupportReply(conversationId, message) {
+  const text = message.trim();
+  if (!text) {
+    alert("Type a message first.");
+    return;
+  }
+
+  const { data: sessionData } = await db.auth.getSession();
+  const adminUser = sessionData.session?.user;
+  if (!adminUser) return;
+
+  const { error } = await db.from("support_messages").insert({
+    conversation_id: conversationId,
+    sender_id: adminUser.id,
+    message: text
+  });
+
+  if (error) {
+    alert(error.message);
+    return;
+  }
+
+  await db.from("support_conversations")
+    .update({ updated_at: new Date().toISOString() })
+    .eq("id", conversationId);
+
+  openAdminSupport(conversationId);
+}
+  
+async function addAdminShortcut() {
+  const { data } = await db.auth.getSession();
+  const user = data.session?.user;
+  if (!user) return;
+
+  const { data: profile } = await db
+    .from("profiles")
+    .select("role")
+    .eq("id", user.id)
+    .single();
+
+  if (profile?.role !== "admin") return;
+
+  const authButton = document.querySelector(
+    '#home button[onclick*="showPage(\'auth\')"]'
+  );
+
+  if (!authButton) return;
+
+  const card = authButton.parentElement;
+
+  if (document.getElementById("adminShortcut")) return;
+
+  const btn = document.createElement("button");
+  btn.id = "adminShortcut";
+  btn.className = "btn";
+  btn.textContent = "Admin Panel";
+  btn.onclick = () => showPage("admin");
+
+  card.appendChild(btn);
+  }
+  
 function showPage(pageId, button) {
   document.querySelectorAll(".page").forEach(page => {
     page.classList.remove("active");
   });
 
   const page = document.getElementById(pageId);
-
   if (page) page.classList.add("active");
 
   document.querySelectorAll(".nav-btn").forEach(btn => {
@@ -873,19 +1264,13 @@ function showPage(pageId, button) {
 
   if (pageId === "home") {
     loadDashboard();
+    addAdminShortcut();
   }
 
-  if (pageId === "referrals") {
-    loadReferral();
-  }
-
-  if (pageId === "wallet") {
-    loadWallet();
-  }
-
-  if (pageId === "withdraw") {
-    loadWithdrawals();
-  }
+  if (pageId === "referrals") loadReferral();
+  if (pageId === "wallet") loadWallet();
+  if (pageId === "withdraw") loadWithdrawals();
+  if (pageId === "admin") loadAdmin();
 }
 
 async function loadReferral() {
